@@ -4,7 +4,9 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Students from "./pages/Students";
@@ -20,7 +22,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function Router() {
   return (
     <Switch>
+      <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
+      <Route path={"/register"} component={Register} />
       <Route path={"/dashboard"}>
         <ProtectedRoute>
           <Dashboard />
@@ -57,8 +61,6 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path={"/404"} component={NotFound} />
-      {/* Default redirect to login */}
-      <Route path={"/"} component={Login} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
@@ -89,7 +91,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <DashboardLayout />
+          <Router />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

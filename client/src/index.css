@@ -117,9 +117,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    direction: rtl;
+    font-family: 'Cairo', 'Poppins', sans-serif;
+  }
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground;
+    direction: rtl;
+    font-family: 'Cairo', 'Poppins', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
