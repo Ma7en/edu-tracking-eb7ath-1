@@ -78,11 +78,8 @@ export default function Sidebar() {
           <ul className="space-y-2">
             {sidebarItems.map((item) => (
               <li key={item.href}>
-                <Link href={item.href}>
-                  <a
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-200 group"
-                  >
+                <Link href={item.href} onClick={() => setIsOpen(false)}>
+                  <span className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors duration-200 group cursor-pointer">
                     <span className="text-gray-500 group-hover:text-primary transition-colors">
                       {item.icon}
                     </span>
@@ -92,7 +89,7 @@ export default function Sidebar() {
                         {item.badge}
                       </span>
                     )}
-                  </a>
+                  </span>
                 </Link>
               </li>
             ))}

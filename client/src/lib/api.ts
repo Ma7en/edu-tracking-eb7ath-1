@@ -1,7 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
-const TOKEN_URL = 'http://localhost:8000/api/token';
+// Use environment variable or fallback to localhost
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = `${API_BASE}/api`;
+const TOKEN_URL = `${API_BASE}/api/token`;
 
 class APIClient {
   private client: AxiosInstance;
