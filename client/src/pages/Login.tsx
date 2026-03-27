@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GraduationCap, Eye, EyeOff } from 'lucide-react';
@@ -6,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 export default function Login() {
+  const [, setLocation] = useLocation();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -114,9 +116,13 @@ export default function Login() {
           {/* Footer */}
           <p className="text-center text-gray-600 text-sm mt-8">
             لا تملك حساب؟{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
+            <button
+              type="button"
+              onClick={() => setLocation('/register')}
+              className="text-blue-600 hover:text-blue-700 font-semibold"
+            >
               تسجيل مدرسة جديدة
-            </a>
+            </button>
           </p>
         </div>
 

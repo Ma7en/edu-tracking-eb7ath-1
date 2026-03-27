@@ -1,9 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 
-// Use environment variable or fallback to localhost
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const API_URL = `${API_BASE}/api`;
-const TOKEN_URL = `${API_BASE}/api/token`;
+// Use relative paths for API calls (proxied through Vite dev server)
+const API_BASE = '';
+const TOKEN_URL = '/api/token/';
 
 class APIClient {
   private client: AxiosInstance;
@@ -11,7 +10,7 @@ class APIClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_URL,
+      baseURL: API_BASE,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -33,40 +32,6 @@ class APIClient {
       },
       (error) => Promise.reject(error)
     );
-
-    // Add response interceptor for token refresh
-    this.client.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          try {
-            const refreshToken = localStorage.getItem('refresh_token');
-            if (refreshToken) {
-              const response = await axios.post(`${TOKEN_URL}/refresh/`, {
-                refresh: refreshToken,
-              });
-
-              this.token = response.data.access;
-              if (this.token) {
-                localStorage.setItem('access_token', this.token);
-                this.setAuthHeader(this.token);
-              }
-
-              return this.client(originalRequest);
-            }
-          } catch (refreshError) {
-            this.logout();
-            return Promise.reject(refreshError);
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
   }
 
   private setAuthHeader(token: string) {
@@ -75,9 +40,7 @@ class APIClient {
 
   async login(phone: string, password: string) {
     try {
-      // For demo purposes, we'll create a mock login
-      // In production, you would have a proper authentication endpoint
-      const response = await axios.post(`${TOKEN_URL}/`, {
+      const response = await axios.post(TOKEN_URL, {
         username: phone,
         password: password,
       });
@@ -90,8 +53,120 @@ class APIClient {
       }
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  async registerSchool(schoolData: {
+    name: string;
+    admin_name: string;
+    phone: string;
+    admin_password: string;
+  }) {
+    try {
+      const response = await this.client.post('/api/schools/', {
+        name: schoolData.name,
+        phone: schoolData.phone,
+        admin_name: schoolData.admin_name,
+        address: 'تم الإضافة من صفحة التسجيل',
+        email: `admin-${schoolData.phone}@school.local`,
+      });
+
+      // Create user for the school admin
+      const userResponse = await this.client.post('/api/users/', {
+        username: schoolData.phone,
+        password: schoolData.admin_password,
+        email: `admin-${schoolData.phone}@school.local`,
+        first_name: schoolData.admin_name,
+        school: response.data.id,
+        role: 'admin',
+      });
+
+      return { school: response.data, user: userResponse.data };
+    } catch (error: any) {
+      console.error('School registration failed:', error);
+      throw error;
+    }
+  }
+
+  async getStudents() {
+    try {
+      const response = await this.client.get('/api/students/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch students:', error);
+      throw error;
+    }
+  }
+
+  async getUsers() {
+    try {
+      const response = await this.client.get('/api/users/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      throw error;
+    }
+  }
+
+  async getSchedules() {
+    try {
+      const response = await this.client.get('/api/schedules/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch schedules:', error);
+      throw error;
+    }
+  }
+
+  async getAttendance() {
+    try {
+      const response = await this.client.get('/api/attendance/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch attendance:', error);
+      throw error;
+    }
+  }
+
+  async getReports() {
+    try {
+      const response = await this.client.get('/api/reports/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch reports:', error);
+      throw error;
+    }
+  }
+
+  async getClasses() {
+    try {
+      const response = await this.client.get('/api/classes/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch classes:', error);
+      throw error;
+    }
+  }
+
+  async getSubjects() {
+    try {
+      const response = await this.client.get('/api/subjects/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch subjects:', error);
+      throw error;
+    }
+  }
+
+  async getAttendanceStatistics() {
+    try {
+      const response = await this.client.get('/api/attendance-statistics/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch attendance statistics:', error);
       throw error;
     }
   }
@@ -103,90 +178,9 @@ class APIClient {
     delete this.client.defaults.headers.common['Authorization'];
   }
 
-  isAuthenticated() {
-    return !!this.token;
-  }
-
-  // School endpoints
-  getSchools() {
-    return this.client.get('/schools/');
-  }
-
-  // User endpoints
-  getUsers() {
-    return this.client.get('/users/');
-  }
-
-  getCurrentUser() {
-    return this.client.get('/users/me/');
-  }
-
-  // Student endpoints
-  getStudents() {
-    return this.client.get('/students/');
-  }
-
-  getStudentStatistics() {
-    return this.client.get('/students/statistics/');
-  }
-
-  createStudent(data: any) {
-    return this.client.post('/students/', data);
-  }
-
-  updateStudent(id: number, data: any) {
-    return this.client.patch(`/students/${id}/`, data);
-  }
-
-  deleteStudent(id: number) {
-    return this.client.delete(`/students/${id}/`);
-  }
-
-  // Class endpoints
-  getClasses() {
-    return this.client.get('/classes/');
-  }
-
-  // Subject endpoints
-  getSubjects() {
-    return this.client.get('/subjects/');
-  }
-
-  // Schedule endpoints
-  getSchedules() {
-    return this.client.get('/schedules/');
-  }
-
-  // Attendance endpoints
-  getAttendance() {
-    return this.client.get('/attendance/');
-  }
-
-  getAttendanceStatistics() {
-    return this.client.get('/attendance/statistics/');
-  }
-
-  createAttendance(data: any) {
-    return this.client.post('/attendance/', data);
-  }
-
-  // Behavior endpoints
-  getBehaviors() {
-    return this.client.get('/behaviors/');
-  }
-
-  // Report endpoints
-  getReports() {
-    return this.client.get('/reports/');
-  }
-
-  createReport(data: any) {
-    return this.client.post('/reports/', data);
-  }
-
-  // Holiday endpoints
-  getHolidays() {
-    return this.client.get('/holidays/');
+  isAuthenticated(): boolean {
+    const token = localStorage.getItem('access_token');
+    return !!token;
   }
 }
 
